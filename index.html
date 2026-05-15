@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0a2540">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CFL Surf">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <title>CFL Surf Report</title>
+  <style>
+    :root {
+      --primary: #0a2540;
+      --accent: #00b4d8;
+      --accent2: #0077b6;
+      --bg: #f0f4f8;
+      --card: #ffffff;
+      --text: #1a1a2e;
+      --text-light: #6b7280;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --offshore: #10b981;
+      --onshore: #ef4444;
+      --cross: #f59e0b;
+      --shadow: 0 4px 24px rgba(10,37,64,0.10);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    /* HEADER */
+    .header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent2) 100%);
+      color: #fff;
+      padding: 18px 16px 14px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    }
+    .header h1 { font-size: 1.4rem; font-weight: 800; letter-spacing: 0.5px; }
+    .header .subtitle { font-size: 0.78rem; opacity: 0.85; margin-top: 2px; }
+    .header .date-display { font-size: 0.72rem; opacity: 0.7; margin-top: 4px; }
+
+    /* DAY DROPDOWN */
+    .day-dropdown-wrap {
+      padding: 12px 16px;
+      background: var(--card);
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .day-dropdown-wrap label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .day-dropdown {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 2px solid #e5e7eb;
+      background: #fff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .day-dropdown:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    /* REGIONAL OVERVIEW */
+    .overview {
+      margin: 14px 16px;
+      padding: 16px;
+      background: linear-gradient(135deg, #0077b6 0%, #00b4d8 100%);
+      border-radius: 16px;
+      color: #fff;
+      box-shadow: var(--shadow);
+    }
+    .overview h2 { font-size: 1rem; margin-bottom: 6px; }
+    .overview p { font-size: 0.82rem; line-height: 1.5; opacity: 0.95; }
+    .overview .rec-badge {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 5px 14px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    /* BEST SPOT BANNER */
+    .best-spot-banner {
+      margin: 0 16px 14px;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-radius: 14px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: var(--shadow);
+    }
+    .best-spot-banner .trophy { font-size: 2rem; }
+    .best-spot-banner .info h3 { font-size: 0.95rem; font-weight: 700; }
+    .best-spot-banner .info p { font-size: 0.78rem; opacity: 0.9; margin-top: 2px; }
+
+    /* COMPACT TIDE SCHEDULE */
+    .tide-section {
+      margin: 0 16px 14px;
+      background: var(--card);
+      border-radius: 14px;
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
+    }
+    .tide-section h3 {
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text-light);
+    }
+    .tide-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .tide-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: 0.76rem;
+      font-weight: 600;
+    }
+    .tide-chip.high {
+      background: rgba(0,119,182,0.10);
+      color: var(--accent2);
+    }
+    .tide-chip.low {
+      background: rgba(245,158,11,0.10);
+      color: #b45309;
+    }
+    .tide-chip .tide-icon { font-size: 0.7rem; }
+    .tide-chip .tide-ht {
+      font-size: 0.68rem;
+      opacity: 0.75;
+      font-weight: 500;
+    }
+
+    /* SPOT CARDS */
+    .spots-grid { padding: 0 16px; display: flex; flex-direction: column; gap: 12px; }
+    .spot-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s;
+      cursor: pointer;
+      border-left: 5px solid var(--accent);
+    }
+    .spot-card:active { transform: scale(0.98); }
+    .spot-card .spot-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+    .spot-card .spot-name { font-size: 1rem; font-weight: 700; }
+    .spot-card .spot-rating {
+      padding: 3px 10px;
+      border-radius: 8px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #fff;
+    }
+    .rating-flat { background: #9ca3af; }
+    .rating-poor { background: #ef4444; }
+    .rating-poor-fair { background: #f59e0b; }
+    .rating-fair { background: #3b82f6; }
+    .rating-fair-good { background: #10b981; }
+    .rating-good { background: #059669; }
+    .rating-epic { background: #7c3aed; }
+
+    .spot-card .conditions-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .cond-item {
+      text-align: center;
+      padding: 8px 4px;
+      background: #f8fafc;
+      border-radius: 10px;
+    }
+    .cond-item .icon { font-size: 1.2rem; }
+    .cond-item .val { font-size: 0.85rem; font-weight: 700; margin-top: 2px; }
+    .cond-item .label { font-size: 0.62rem; color: var(--text-light); margin-top: 1px; }
+
+    /* WIND INDICATOR */
+    .wind-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+    .wind-offshore { background: rgba(16,185,129,0.15); color: var(--offshore); }
+    .wind-onshore { background: rgba(239,68,68,0.15); color: var(--onshore); }
+    .wind-cross { background: rgba(245,158,11,0.15); color: var(--cross); }
+    .wind-indicator .arrow { font-size: 0.9rem; }
+
+    .spot-card .spot-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+    .surfline-link {
+      font-size: 0.72rem;
+      color: var(--accent2);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .surfline-link:hover { text-decoration: underline; }
+
+    /* LEGEND */
+    .legend {
+      margin: 16px 16px 0;
+      padding: 14px 16px;
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+    }
+    .legend h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 8px; }
+    .legend-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+
+    /* BOTTOM NAV */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0 env(safe-area-inset-bottom, 8px);
+      box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+      z-index: 100;
+    }
+    .nav-item {
+      text-align: center;
+      font-size: 0.65rem;
+      color: var(--text-light);
+      text-decoration: none;
+      padding: 4px 8px;
+      transition: color 0.2s;
+    }
+    .nav-item.active { color: var(--accent); }
+    .nav-item .nav-icon { font-size: 1.3rem; display: block; margin-bottom: 2px; }
+
+    /* REFRESH */
+    .refresh-bar {
+      text-align: center;
+      padding: 8px;
+      font-size: 0.7rem;
+      color: var(--text-light);
+    }
+    .refresh-bar button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 5px 14px;
+      border-radius: 10px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-left: 6px;
+    }
+
+    /* Animations */
+    @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .spot-card { animation: fadeIn 0.4s ease forwards; }
+    .spot-card:nth-child(2) { animation-delay: 0.05s; }
+    .spot-card:nth-child(3) { animation-delay: 0.1s; }
+    .spot-card:nth-child(4) { animation-delay: 0.15s; }
+    .spot-card:nth-child(5) { animation-delay: 0.2s; }
+    .spot-card:nth-child(6) { animation-delay: 0.25s; }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>🏄 CFL Surf Report</h1>
+    <div class="subtitle">Central Florida — Space Coast</div>
+    <div class="date-display" id="dateDisplay"></div>
+  </div>
+
+  <!-- DAY DROPDOWN -->
+  <div class="day-dropdown-wrap">
+    <label for="daySelect">📅 Forecast:</label>
+    <select class="day-dropdown" id="daySelect" onchange="renderDay(parseInt(this.value))"></select>
+  </div>
+
+  <!-- REFRESH BAR -->
+  <div class="refresh-bar">
+    <span id="lastUpdated">Updated just now</span>
+    <button onclick="refreshData()">↻ Refresh</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="overview" id="overview"></div>
+
+  <!-- BEST SPOT -->
+  <div class="best-spot-banner" id="bestSpot"></div>
+
+  <!-- TIDE TIMES (compact) -->
+  <div class="tide-section">
+    <h3>🌊 Tide Schedule — <span id="tideLabel">Today</span></h3>
+    <div class="tide-row" id="tideRow"></div>
+  </div>
+
+  <!-- SPOT CARDS -->
+  <div class="spots-grid" id="spotsGrid"></div>
+
+  <!-- WIND LEGEND -->
+  <div class="legend">
+    <h3>💨 Wind Type Legend</h3>
+    <div class="legend-row">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--offshore)"></div> Offshore (Clean)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--cross)"></div> Cross-shore (OK)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--onshore)"></div> Onshore (Choppy)</div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <a class="nav-item active" href="#"><span class="nav-icon">🏠</span>Home</a>
+    <a class="nav-item" href="https://www.surfline.com/surf-reports-forecasts-cams/united-states/florida/brevard-county/cocoa-beach/4151441" target="_blank"><span class="nav-icon">📷</span>Cams</a>
+    <a class="nav-item" href="https://www.cflsurf.com" target="_blank"><span class="nav-icon">📊</span>CFLSurf</a>
+    <a class="nav-item" href="https://www.ndbc.noaa.gov/station_page.php?station=41113" target="_blank"><span class="nav-icon">🌡️</span>Buoy</a>
+  </div>
+
+<script>
+// ================================================================
+// DATA
+// ================================================================
+const SPOTS = [
+  { id:"sebastian",  name:"Sebastian Inlet",       surflineUrl:"https://www.surfline.com/surf-reports-forecasts-cams/united-states/florida/brevard-county/sebastian-inlet/584204204e65fad6a7709b7e" },
+  { id:"2ndlight",   name:"2nd Light (Indialantic)",surflineUrl:"https://www.surfline.com/surf-reports-forecasts-cams/united-states/florida/brevard-county/second-light/584204204e65fad6a7709b83" },
+  { id:"satellite",  name:"Satellite Beach",        surflineUrl:"https://www.surfline.com/surf-reports-forecasts-cams/united-states/florida/brevard-county/satellite-beach/584204204e65fad6a7709b87" },
+  { id:"cocoa",      name:"Cocoa Beach Pier",       surflineUrl:"https://www.surfline.com/surf-reports-forecasts-cams/united-states/florida/brevard-county/cocoa-beach/4151441" },
+  { id:"melbourne",  name:"Melbourne Beach",        surflineUrl:"https://www.surfline.com/surf-reports-forecasts-cams/united-states/florida/brevard-county/melbourne-beach/584204204e65fad6a7709b81" },
+  { id:"playalinda", name:"Playalinda Beach",       surflineUrl:"https://www.surfline.com/surf-reports-forecasts-cams/united-states/florida/brevard-county/playalinda-beach/584204204e65fad6a7709b93" }
+];
+
+const FORECAST = {
+  0: {
+    label:"Today",
+    overview:"Small NE/E swell mix with light SSW winds shifting onshore this afternoon. Fun longboard-size waves at most spots. Morning glass was the call — afternoon gets textured.",
+    boardRec:"🏄 Longboard Recommended", waterTemp:"80°F", swellPrimary:"NE 3ft @ 8s",
+    spots: {
+      sebastian:  { min:2, max:3, rating:"Poor-Fair", wind:"9 kts S",   windType:"onshore", tide:"Mid" },
+      "2ndlight": { min:2, max:3, rating:"Fair",      wind:"5 kts SSW", windType:"cross",   tide:"Mid" },
+      satellite:  { min:2, max:3, rating:"Fair",      wind:"5 kts SSW", windType:"cross",   tide:"Mid" },
+      cocoa:      { min:1, max:2, rating:"Poor-Fair", wind:"5 kts ENE", windType:"onshore", tide:"Mid" },
+      melbourne:  { min:2, max:3, rating:"Fair",      wind:"6 kts SSW", windType:"cross",   tide:"Mid" },
+      playalinda: { min:2, max:3, rating:"Poor-Fair", wind:"6 kts E",   windType:"onshore", tide:"Mid" }
+    },
+    bestSpot:"2ndlight",
+    tides:[
+      { type:"Low",  time:"6:12 AM",  height:"0.5 ft" },
+      { type:"High", time:"12:34 PM", height:"3.1 ft" },
+      { type:"Low",  time:"6:50 PM",  height:"1.2 ft" },
+      { type:"High", time:"11:58 PM", height:"3.4 ft" }
+    ]
+  },
+  1: {
+    label:"Saturday",
+    overview:"SE wind swell building through the day. Short period (5–7 sec), choppy and textured. Fun for experienced surfers who don't mind some bump.",
+    boardRec:"🏄 Shortboard or Fish", waterTemp:"80°F", swellPrimary:"SE 3ft @ 6s",
+    spots: {
+      sebastian:  { min:2, max:3, rating:"Fair",      wind:"12 kts SE", windType:"onshore", tide:"Mid" },
+      "2ndlight": { min:2, max:3, rating:"Poor-Fair", wind:"10 kts SE", windType:"onshore", tide:"Mid" },
+      satellite:  { min:2, max:3, rating:"Poor-Fair", wind:"10 kts SE", windType:"onshore", tide:"Mid" },
+      cocoa:      { min:2, max:3, rating:"Poor-Fair", wind:"12 kts SE", windType:"onshore", tide:"Mid" },
+      melbourne:  { min:2, max:3, rating:"Fair",      wind:"10 kts SE", windType:"onshore", tide:"Mid" },
+      playalinda: { min:2, max:3, rating:"Poor-Fair", wind:"10 kts E",  windType:"onshore", tide:"Mid" }
+    },
+    bestSpot:"sebastian",
+    tides:[
+      { type:"Low",  time:"5:32 AM",  height:"0.4 ft" },
+      { type:"High", time:"11:48 AM", height:"3.0 ft" },
+      { type:"Low",  time:"6:05 PM",  height:"1.1 ft" },
+      { type:"High", time:"11:22 PM", height:"3.4 ft" }
+    ]
+  },
+  2: {
+    label:"Sunday",
+    overview:"Continued SE wind swell. Choppy and short period. Dawn patrol will have the best shape before winds pick up. 2–3 ft with some 3+ sets at the inlet.",
+    boardRec:"🏄 Fish or Hybrid", waterTemp:"81°F", swellPrimary:"SE 3ft @ 7s",
+    spots: {
+      sebastian:  { min:2, max:4, rating:"Fair",      wind:"8 kts SW", windType:"offshore", tide:"Rising" },
+      "2ndlight": { min:2, max:3, rating:"Fair",      wind:"7 kts SW", windType:"offshore", tide:"Rising" },
+      satellite:  { min:2, max:3, rating:"Fair",      wind:"7 kts SW", windType:"offshore", tide:"Rising" },
+      cocoa:      { min:2, max:3, rating:"Poor-Fair", wind:"8 kts S",  windType:"cross",    tide:"Rising" },
+      melbourne:  { min:2, max:3, rating:"Fair",      wind:"7 kts SW", windType:"offshore", tide:"Rising" },
+      playalinda: { min:2, max:3, rating:"Poor-Fair", wind:"8 kts S",  windType:"cross",    tide:"Rising" }
+    },
+    bestSpot:"sebastian",
+    tides:[
+      { type:"Low",  time:"4:18 AM",  height:"0.4 ft" },
+      { type:"High", time:"10:35 AM", height:"2.9 ft" },
+      { type:"Low",  time:"5:12 PM",  height:"1.0 ft" },
+      { type:"High", time:"10:50 PM", height:"3.3 ft" }
+    ]
+  },
+  3: {
+    label:"Monday",
+    overview:"Swell fills in from the E/ENE. Size bumps to 3–4 ft at exposed spots. Winds go light and variable AM — great dawn patrol window. This could be the pick of the week.",
+    boardRec:"🏄 Shortboard / Performance", waterTemp:"81°F", swellPrimary:"ENE 4ft @ 8s",
+    spots: {
+      sebastian:  { min:3, max:5, rating:"Fair-Good", wind:"4 kts W",  windType:"offshore", tide:"Dropping" },
+      "2ndlight": { min:3, max:4, rating:"Fair-Good", wind:"3 kts NW", windType:"offshore", tide:"Dropping" },
+      satellite:  { min:3, max:4, rating:"Fair",      wind:"4 kts NW", windType:"offshore", tide:"Dropping" },
+      cocoa:      { min:2, max:4, rating:"Fair",      wind:"5 kts NW", windType:"offshore", tide:"Dropping" },
+      melbourne:  { min:3, max:4, rating:"Fair-Good", wind:"3 kts W",  windType:"offshore", tide:"Dropping" },
+      playalinda: { min:3, max:4, rating:"Fair",      wind:"5 kts NW", windType:"offshore", tide:"Dropping" }
+    },
+    bestSpot:"sebastian",
+    tides:[
+      { type:"Low",  time:"2:45 AM",  height:"0.5 ft" },
+      { type:"High", time:"9:10 AM",  height:"2.8 ft" },
+      { type:"Low",  time:"4:05 PM",  height:"0.9 ft" },
+      { type:"High", time:"10:15 PM", height:"3.3 ft" }
+    ]
+  },
+  4: {
+    label:"Tuesday",
+    overview:"Best day of the week! ENE ground swell peaks with 3–5 ft sets at most spots and overhead+ at the Inlet. Light W winds keep things clean all morning. Get out there!",
+    boardRec:"🏄 Shortboard — Let's GO!", waterTemp:"81°F", swellPrimary:"ENE 5ft @ 9s",
+    spots: {
+      sebastian:  { min:4, max:6, rating:"Good",      wind:"3 kts W",  windType:"offshore", tide:"Rising" },
+      "2ndlight": { min:3, max:5, rating:"Fair-Good", wind:"3 kts NW", windType:"offshore", tide:"Rising" },
+      satellite:  { min:3, max:5, rating:"Fair-Good", wind:"3 kts NW", windType:"offshore", tide:"Rising" },
+      cocoa:      { min:3, max:4, rating:"Fair",      wind:"4 kts W",  windType:"offshore", tide:"Rising" },
+      melbourne:  { min:3, max:5, rating:"Fair-Good", wind:"3 kts W",  windType:"offshore", tide:"Rising" },
+      playalinda: { min:3, max:5, rating:"Fair-Good", wind:"4 kts NW", windType:"offshore", tide:"Rising" }
+    },
+    bestSpot:"sebastian",
+    tides:[
+      { type:"Low",  time:"3:10 AM",  height:"0.5 ft" },
+      { type:"High", time:"9:40 AM",  height:"3.0 ft" },
+      { type:"Low",  time:"4:30 PM",  height:"0.8 ft" },
+      { type:"High", time:"10:45 PM", height:"3.5 ft" }
+    ]
+  }
+};
+
+let selectedDay = 0;
+
+// ================================================================
+// INIT
+// ================================================================
+function init() {
+  updateDateDisplay();
+  buildDayDropdown();
+  renderDay(0);
+}
+
+function updateDateDisplay() {
+  const now = new Date();
+  document.getElementById('dateDisplay').textContent =
+    now.toLocaleDateString('en-US',{ weekday:'long', month:'long', day:'numeric', year:'numeric' }) +
+    ' \u2022 ' + now.toLocaleTimeString('en-US',{ hour:'numeric', minute:'2-digit' });
+}
+
+function buildDayDropdown() {
+  const sel = document.getElementById('daySelect');
+  const today = new Date();
+  sel.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() + i);
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = i === 0
+      ? 'Today — ' + d.toLocaleDateString('en-US',{ weekday:'long', month:'short', day:'numeric' })
+      : d.toLocaleDateString('en-US',{ weekday:'long', month:'short', day:'numeric' });
+    sel.appendChild(opt);
+  }
+}
+
+function renderDay(dayIndex) {
+  selectedDay = dayIndex;
+  const data = FORECAST[dayIndex];
+  if (!data) return;
+  renderOverview(data);
+  renderBestSpot(data);
+  renderTides(data);
+  renderSpots(data);
+}
+
+// ================================================================
+// RENDER
+// ================================================================
+function renderOverview(data) {
+  document.getElementById('overview').innerHTML = `
+    <h2>\ud83d\udccb Regional Overview</h2>
+    <p>${data.overview}</p>
+    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+      <span class="rec-badge">\ud83c\udf21\ufe0f Water: ${data.waterTemp}</span>
+      <span class="rec-badge">\ud83c\udf0a Swell: ${data.swellPrimary}</span>
+      <span class="rec-badge">${data.boardRec}</span>
+    </div>`;
+}
+
+function renderBestSpot(data) {
+  const spot = SPOTS.find(s => s.id === data.bestSpot);
+  const c = data.spots[data.bestSpot];
+  document.getElementById('bestSpot').innerHTML = `
+    <div class="trophy">\ud83c\udfc6</div>
+    <div class="info">
+      <h3>Best Bet: ${spot.name}</h3>
+      <p>${c.min}\u2013${c.max} ft \u2022 ${c.rating} \u2022 ${c.wind} \u2022 ${getWindEmoji(c.windType)} ${c.windType}</p>
+    </div>`;
+}
+
+function renderTides(data) {
+  document.getElementById('tideLabel').textContent = data.label;
+  document.getElementById('tideRow').innerHTML = data.tides.map(t => {
+    const isHigh = t.type === 'High';
+    return `<div class="tide-chip ${isHigh ? 'high' : 'low'}">
+      <span class="tide-icon">${isHigh ? '\u25b2' : '\u25bc'}</span>
+      <strong>${t.type}</strong> ${t.time}
+      <span class="tide-ht">(${t.height})</span>
+    </div>`;
+  }).join('');
+}
+
+function getWindEmoji(type) {
+  return type === 'offshore' ? '\u2705' : type === 'cross' ? '\u26a0\ufe0f' : '\ud83d\udd34';
+}
+function getRatingClass(r) {
+  r = r.toLowerCase().replace(/\s/g,'');
+  const map = { flat:'rating-flat', poor:'rating-poor', 'poor-fair':'rating-poor-fair',
+    fair:'rating-fair', 'fair-good':'rating-fair-good', good:'rating-good', epic:'rating-epic' };
+  return map[r] || 'rating-fair';
+}
+function getWindClass(t) {
+  return t === 'offshore' ? 'wind-offshore' : t === 'cross' ? 'wind-cross' : 'wind-onshore';
+}
+function getWindArrow(t) {
+  return t === 'offshore' ? '\u2b05\ufe0f' : t === 'cross' ? '\u2195\ufe0f' : '\u27a1\ufe0f';
+}
+
+function renderSpots(data) {
+  const grid = document.getElementById('spotsGrid');
+  grid.innerHTML = '';
+  SPOTS.forEach(spot => {
+    const c = data.spots[spot.id];
+    if (!c) return;
+    const card = document.createElement('div');
+    card.className = 'spot-card';
+    card.innerHTML = `
+      <div class="spot-header">
+        <div class="spot-name">${spot.name}</div>
+        <span class="spot-rating ${getRatingClass(c.rating)}">${c.rating}</span>
+      </div>
+      <div class="conditions-row">
+        <div class="cond-item"><div class="icon">\ud83c\udf0a</div><div class="val">${c.min}\u2013${c.max} ft</div><div class="label">Wave Height</div></div>
+        <div class="cond-item"><div class="icon">\ud83d\udca8</div><div class="val">${c.wind}</div><div class="label">Wind</div></div>
+        <div class="cond-item"><div class="icon">\ud83c\udf21\ufe0f</div><div class="val">${data.waterTemp}</div><div class="label">Water Temp</div></div>
+        <div class="cond-item"><div class="icon">\u23f3</div><div class="val">${c.tide}</div><div class="label">Tide</div></div>
+      </div>
+      <div class="spot-footer">
+        <span class="wind-indicator ${getWindClass(c.windType)}">
+          <span class="arrow">${getWindArrow(c.windType)}</span> ${c.windType.charAt(0).toUpperCase()+c.windType.slice(1)}
+        </span>
+        <a class="surfline-link" href="${spot.surflineUrl}" target="_blank">View on Surfline \u2192</a>
+      </div>`;
+    card.addEventListener('click', e => { if (e.target.tagName !== 'A') window.open(spot.surflineUrl,'_blank'); });
+    grid.appendChild(card);
+  });
+}
+
+function refreshData() {
+  updateDateDisplay();
+  renderDay(selectedDay);
+  document.getElementById('lastUpdated').textContent = 'Updated just now';
+}
+
+window.addEventListener('resize', () => renderDay(selectedDay));
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
